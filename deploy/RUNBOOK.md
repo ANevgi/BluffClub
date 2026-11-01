@@ -64,7 +64,7 @@ deploy/ship.sh status     # tags, container, disk
 H /data/bluffclub/dc logs -f --tail 100 bluffclub
 ```
 
-`ship.sh` refuses an uncommitted checkout or a `/data` over 85% full, and checks
+`ship.sh` refuses an uncommitted checkout, a `/data` over 85% full, or a moment when any room has people in it (a restart ends their games; `FORCE=1` overrides), and checks
 `https://bluffclub.heronevents.app/api/game?status=1` from outside when it is done.
 
 ## Change a setting
