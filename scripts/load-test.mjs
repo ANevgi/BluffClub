@@ -20,12 +20,13 @@ await until(host,v=>v.audience===AUDIENCE&&v.players.length===PLAYERS,'everyone 
 for(let round=0;round<5;round++){
  const v=await until(host,v=>v.phase==='submit','submissions');const kind=v.round.kind;console.log(`round ${round+1}: ${kind}`);await sleep(HOLD);
  await Promise.all(players.map((p,i)=>post('submit',{code,value:kind==='draw'?PNG:`${kind} entry ${i+1} ${Math.random().toString(36).slice(2,7)}`},p.token)));
- await post('advance',{code},created.token);
+ // The room moves on by itself once every player has submitted.
  if(kind!=='prompt'){const voting=await until(host,v=>v.phase==='vote','voting');if(kind==='draw'){const image=voting.entries.find(e=>e.image?.startsWith('/img/'));if(!image)fail('drawings are not served from /img/');const r=await fetch(base+image.image);if(!r.ok||r.headers.get('content-type')!=='image/png'||!r.headers.get('cache-control')?.includes('immutable'))fail(`image ${image.image} answered ${r.status} ${r.headers.get('content-type')} ${r.headers.get('cache-control')}`);console.log(`  drawing served: ${image.image}`)}
   await sleep(HOLD);
-  await Promise.all(phones.filter(p=>p.role==='player').map(async p=>{const view=await until(p,v=>v.phase==='vote','a player to see the vote');await post('vote',{code,entry:pick(view.entries.filter(e=>!e.own)).id},p.token)}));
+  // Audience votes count until the last player votes, which reveals the round.
   const votes={};await Promise.all(phones.filter(p=>p.role==='audience').map(async p=>{const view=await until(p,v=>v.phase==='vote','the audience to see the vote');const entry=pick(view.entries).id;votes[p.token]=entry;await post('vote',{code,entry},p.token)}));
-  await until(host,v=>v.audienceVoted===AUDIENCE&&v.players.every(p=>p.voted),'every vote');await post('advance',{code},created.token);
+  await until(host,v=>v.audienceVoted===AUDIENCE,'every audience vote');
+  await Promise.all(phones.filter(p=>p.role==='player').map(async p=>{const view=await until(p,v=>v.phase==='vote','a player to see the vote');await post('vote',{code,entry:pick(view.entries.filter(e=>!e.own)).id},p.token)}));
   const shown=await until(host,v=>v.phase==='reveal','the reveal');const crowd=shown.entries.reduce((n,e)=>n+(e.crowd||0),0),top=Math.max(...shown.entries.map(e=>e.crowd||0));
   if(crowd!==AUDIENCE)fail(`reveal counted ${crowd} audience votes, not ${AUDIENCE}`);if(shown.entries.some(e=>e.favourite!==(e.crowd===top)))fail('crowd pick is not the most-voted entry');
   for(const [token,entry] of Object.entries(votes)){const e=shown.entries.find(e=>e.id===entry);if(kind==='bluff'?e.truth:kind!=='pitch'&&e.ai)expected.set(token,expected.get(token)+1000)}
