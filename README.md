@@ -4,11 +4,13 @@
 
 **Bluff Club is a browser party game where friends compete against an AI player that is trying to blend in.** Draw, invent convincing lies, write captions and pitch ridiculous products—then vote, reveal who made what, and discover who fooled the room.
 
+<p align="center"><a href="https://bluffclub.heronevents.app/"><img src="docs/play-button.png" alt="Play Bluff Club now at bluffclub.heronevents.app" width="100%"></a></p>
+
 **[Play Bluff Club](https://bluffclub.heronevents.app)** · **[Watch the demo video](https://youtu.be/L2JXNzmuRXg)** · **[GitHub](https://github.com/ANevgi/BluffClub)** · [90-second demo outline](DEMO-SCRIPT.md)
 
 Built for the **DevDay Exchange Community Hackathon, London — 1 November 2026**.
 
-![Bluff Club home screen with phone joining and round selection](docs/screenshots/home.jpg)
+![Bluff Club home screen: "Trust absolutely F**** no one.", with the join and host cards](docs/screenshots/home.jpg)
 
 ## Demo video
 
@@ -43,9 +45,9 @@ Captured on the live site with fictional nicknames: five players and an audience
 
 | | |
 | --- | --- |
-| ![Host options: pick rounds, 18+ room and the rude filter explained](docs/screenshots/02-host-options.jpg) **Set up.** Pick rounds and the room's content setting; the host card explains how the rude filter works. | ![Host lobby with QR code, room code, five players, Bluffbot and 30 audience members](docs/screenshots/03-host-lobby.jpg) **Lobby.** The big screen shows a QR code and room code, 12 player seats, the audience count and the narrator switch. |
+| ![Host options: pick rounds, 18+ room and the rude filter explained](docs/screenshots/02-host-options.jpg) **Set up.** Pick rounds and the room's content setting; the host card explains how the rude filter works. | ![Host lobby with QR code, room code and the green room: 30 audience pets roaming, five players' pets and Bluffbot on the stage](docs/screenshots/03-host-lobby.jpg) **Lobby.** The big screen shows a QR code and room code, and everyone who joins gets a pet: the audience's roam the green room, players' wait on the stage. |
 | ![A player's phone: the rude filter turns down a rude entry](docs/screenshots/04-rude-filter.jpg) **Rude filter.** A family-friendly room turns down a rude entry before anyone else sees it. | ![Host vote screen: seven anonymous answers, three of five player votes and 22 of 30 audience votes](docs/screenshots/05-host-vote.jpg) **Vote.** Anonymous answers, including Bluffbot's; players and audience vote. |
-| ![Audience phone after the reveal: the truth, Bluffbot's bluff, the crowd pick and "You found the truth!"](docs/screenshots/06-audience-reveal.jpg) **Reveal.** Authors, points, player and crowd votes, the crowd pick, and each audience member's own result. | ![Final scores: Bluffbot wins, with the crowd leaderboard below](docs/screenshots/07-final-scores.jpg) **Final scores.** Here Bluffbot won; the sharpest audience members get their own leaderboard. |
+| ![Audience phone after the reveal: the truth, Bluffbot's bluff, the crowd pick and "You found the truth!"](docs/screenshots/06-audience-reveal.jpg) **Reveal.** Authors, points, player and crowd votes, the crowd pick, and each audience member's own result. | ![Final scores: Captain Toast edges out Bluffbot, every player shown with their pet, crowd leaderboard below](docs/screenshots/07-final-scores.jpg) **Final scores.** Here Captain Toast just beat Bluffbot; the sharpest audience members get their own leaderboard. |
 
 ## Last-minute addition: dot pets
 
