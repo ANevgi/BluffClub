@@ -1,6 +1,8 @@
 # Bluff Club — live Next.js hackathon app
 
-A host opens a room, friends join on their phones, humans and one real AI submit entries, players vote, and the server reveals authors and scores. Five selectable rounds. Original purple gameshow design retained.
+A host opens a room, friends join on their phones, humans and one real AI submit entries, players vote, and the server reveals authors and scores. Up to 12 people play; everyone else in the room (up to 300) joins the audience, votes, and competes on a crowd leaderboard. Five selectable rounds. Original purple gameshow design retained.
+
+Production: https://bluffclub.heronevents.app (deploy/RUNBOOK.md).
 
 ## Run
 
@@ -23,7 +25,7 @@ npm run build
 npm start
 ```
 
-Deploy this folder to a single persistent Node service on Railway, Render, Fly or a VM, with the start command above. Set OPENAI_API_KEY and optionally HOST_PASSWORD in that service's environment. The included Dockerfile is another option. PORT is read by Next.js. Keep one instance, no autoscaling; do not deploy this in-memory version to Vercel serverless or the old static Sites URL. Server restarts lose all rooms. No database is required for a single-process demo.
+bluffclub.heronevents.app runs this as one container behind Heron Connect's Cloudflare tunnel; `deploy/ship.sh` ships it and deploy/RUNBOOK.md has setup, rollback and capacity. Elsewhere, deploy this folder to a single persistent Node service on Railway, Render, Fly or a VM, with the start command above. Set OPENAI_API_KEY and optionally HOST_PASSWORD in that service's environment. The included Dockerfile is another option. PORT is read by Next.js. Keep one instance, no autoscaling; do not deploy this in-memory version to Vercel serverless or the old static Sites URL. Server restarts lose all rooms. No database is required for a single-process demo.
 
 The existing Sites page remains the earlier simulated prototype; this is a separate real application. Publishing a live Node service requires a hosting account/environment.
 
@@ -45,11 +47,13 @@ Model names and request patterns checked against official documentation. Account
 4. Pitch, Please: write a product pitch; AI competes. Every human vote gives the author 500. No fake opponent votes.
 5. Prompt Gone Wrong: guess the intended prompt. By default uses the pre-generated tiger-prawn-soup puzzle for fast start. Check “fresh image” to generate a new staged misunderstanding from a small curated bank. Responses semantically judges guesses from 0–100; points = score × 10 plus 500 to every highest-scoring guess (if above zero).
 
+Audience: anyone can join the audience at any time, including mid-game. In rounds 1–4 they vote alongside the players. The audience's most-voted entry counts as one extra vote (ties all count) and is marked crowd pick. Audience members who find the truth (round 1) or the bot (rounds 2–3) earn 1,000 points on their own crowd leaderboard; the top five appear with the final scores. In round 5 the audience watches.
+
 Host chooses when to close submissions/voting. The displayed timer is advisory. Pending validation requests block closing submissions. Partial rounds may close with absent players. Failed AI requests show an error and offer retry/skip; no points are silently invented. Generation currently happens before the drawing timer starts, to make the hackathon flow reliable.
 
 ## Architecture
 
-Next.js App Router + React + TypeScript. One /api/game handler owns authoritative in-memory room state. Polling every 1.2 seconds. Random room codes, per-host and per-player secret tokens. Server validates phase, duplicate submissions/votes, own-entry voting, lengths and host controls. Authors/answers are not sent before reveal. No real-time database, auth provider or WebSocket service. No automated tests per hackathon request; use the production build and a manual host/player walkthrough.
+Next.js App Router + React + TypeScript. One /api/game handler owns authoritative in-memory room state. Polling every 1.2 seconds (audience every 2), with ETags. Drawings and generated images are kept in the room and served from /img/<room>-<key>.png with immutable caching, so the polled state stays a few KB and Cloudflare serves each image to the audience from its edge. Random room codes, per-host and per-player secret tokens. Server validates phase, duplicate submissions/votes, own-entry voting, lengths and host controls. Authors/answers are not sent before reveal. No real-time database, auth provider or WebSocket service. No unit tests per hackathon request; `node scripts/load-test.mjs <url> [audience]` plays a full five-round game against a running server (use DEMO_MODE=true) with 12 players and an audience polling like phones, checks seats, crowd scoring and images, and prints latency.
 
 ## Credits / Codex
 
@@ -59,7 +63,7 @@ Concrete Codex contribution: migrated the simulated browser-only prototype into 
 
 ## Limits
 
-Hackathon prototype, not production infrastructure. Rooms live for 3 hours of inactivity, max 30 rooms / 8 players each. No persistence, distributed coordination, sophisticated moderation, anti-cheat or per-IP rate limits. Set HOST_PASSWORD before public hosting. API calls cost money. Names, submissions and drawings are sent to OpenAI only where needed (bluff validation / AI prompt judging; drawing prompts, not human strokes). Use fictional nicknames and do not enter sensitive information. No 3D or voice integration yet.
+Hackathon prototype, not production infrastructure. Rooms live for 3 hours of inactivity, max 30 rooms, each with 12 players and 300 audience. No persistence, distributed coordination, sophisticated moderation, anti-cheat or per-IP rate limits. Set HOST_PASSWORD before public hosting. API calls cost money. Names, submissions and drawings are sent to OpenAI only where needed (bluff validation / AI prompt judging; drawing prompts, not human strokes). Use fictional nicknames and do not enter sensitive information. No 3D or voice integration yet.
 
 ## Official references
 
