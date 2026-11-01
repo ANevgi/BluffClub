@@ -53,7 +53,7 @@ check_health() {
     if python3 -c 'import json, sys; d = json.loads(sys.argv[1]); sys.exit(0 if d.get("ready") or d.get("demo") else 1)' "$body" 2>/dev/null; then
       echo "GET $URL/api/game?status=1 -> $body"
       python3 -c 'import json, sys; sys.exit(0 if json.loads(sys.argv[1]).get("passwordRequired") else 1)' "$body" \
-        || echo "WARNING: HOST_PASSWORD is not set, so anyone can create rooms on your OpenAI key."
+        || echo "note: HOST_PASSWORD is empty, so anyone can host (and spend the OpenAI key)."
       return 0
     fi
     echo "  attempt $attempt/10: ${body:-<no response>}"
