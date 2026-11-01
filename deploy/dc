@@ -3,8 +3,8 @@
 # deploy/ship.sh copies it to /data/bluffclub/dc. From anywhere on the host:
 #
 #   /data/bluffclub/dc ps
-#   /data/bluffclub/dc logs -f --tail 100 web
-#   /data/bluffclub/dc up -d --force-recreate web    # re-reads .env; ends every room in play
+#   /data/bluffclub/dc logs -f --tail 100 bluffclub
+#   /data/bluffclub/dc up -d --force-recreate bluffclub    # re-reads .env; ends every room in play
 set -euo pipefail
 D=/data/bluffclub
 exec docker compose -p bluffclub --project-directory "$D" -f "$D/compose.prod.yml" \

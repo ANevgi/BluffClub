@@ -13,13 +13,16 @@
 # - No `ports:`. Visitors arrive through the heronmeet tunnel, whose cloudflared reaches this
 #   container as `bluffclub` on the heronmeet network. Being on that network also puts it behind
 #   heronmeet's block on the instance metadata service.
+# - Compose registers every service's name on every network it joins, so no service here may share
+#   a name with one of heronmeet's (db, migrate, api, web, cloudflared): a second `web` on that network
+#   took a share of heronevents.app's traffic. ship.sh refuses to start if one does.
 # - Hard memory and CPU limits, and oom_score_adj 500: if the host runs out of memory the kernel
 #   kills this before anything that isn't ours.
 
 name: bluffclub
 
 services:
-  web:
+  bluffclub:
     image: bluffclub-web:${IMAGE_TAG:?set IMAGE_TAG (release.env, written by deploy/ship.sh)}
     # Built on the Mac and loaded by ship.sh; never look for it on a registry.
     pull_policy: never
@@ -52,9 +55,7 @@ services:
       options:
         max-size: "20m"
         max-file: "3"
-    networks:
-      heronmeet:
-        aliases: [bluffclub]
+    networks: [heronmeet]
 
 networks:
   # Created by the heronmeet stack; Heron Connect must be up first.
