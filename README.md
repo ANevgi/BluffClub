@@ -1,80 +1,144 @@
-# Bluff Club — live Next.js hackathon app
+# Bluff Club
 
-A host opens a room, friends join on their phones, humans and one real AI submit entries, players vote, and the server reveals authors and scores. Up to 12 people play; everyone else in the room (up to 300) joins the audience, votes, and competes on a crowd leaderboard. Five selectable rounds. Original purple gameshow design retained.
+### Your friends are bluffing. Now the AI is too.
 
-Production: https://bluffclub.heronevents.app (deploy/RUNBOOK.md).
+**Bluff Club is a browser party game where friends compete against an AI player that is trying to blend in.** Draw, invent convincing lies, write captions and pitch ridiculous products—then vote, reveal who made what, and discover who fooled the room.
 
-## Run
+**[Play Bluff Club](https://bluffclub.heronevents.app)** · **[GitHub](https://github.com/ANevgi/BluffClub)** · [90-second demo outline](DEMO-SCRIPT.md)
 
-Requires Node 22+.
+Built for the **DevDay Exchange Community Hackathon, London — 1 November 2026**.
+
+![Bluff Club home screen with phone joining and round selection](docs/screenshots/home.jpg)
+
+## Who it is for and why
+
+For friends, teams and event groups who want an instant shared icebreaker. AI tools usually put one person in front of a chat window; we wanted an experience that gets a whole room laughing, guessing and arguing together. Everyone uses their own phone, one screen hosts the show, and the AI becomes a competitor the group can outsmart.
+
+## Team
+
+- **Aryan**
+- **Asim**
+- **Dillion**
+
+**Team contact email:** TODO — add before submitting.
+
+## Play in a minute
+
+1. Open [bluffclub.heronevents.app](https://bluffclub.heronevents.app) on the shared screen and create a room.
+2. Friends scan its QR code or enter the room code on their phones. Up to **12 players** get seats; others can join the audience and vote.
+3. The host starts the selected rounds. Players submit their own answers and drawings; the AI contributes its entry.
+4. Vote on the anonymous entries, reveal the authors, and see the scores. The audience has its own crowd leaderboard.
+
+For a short showcase, choose **Who Drew That?** and **Prompt Gone Wrong**. The host is a spectator; join separately on a phone to play. The optional voice narrator plays through the host’s speakers.
+
+## Five ways to distrust your friends
+
+| Round | What happens |
+| --- | --- |
+| **Who Drew That?** | Humans draw on their phones while Image Gen supplies the bot’s attempt. Spot the machine in the anonymous gallery. |
+| **Prompt Gone Wrong** | See an absurdly literal image, guess the innocent original prompt, and win by semantic closeness. “Tiger prawn soup” becomes tigers sitting in soup. |
+| **Human or Hallucination?** | Invent a plausible answer to a fictional trivia blank. Find the truth and earn points when people pick your bluff. |
+| **Caption Trap** | Caption a strange picture, then identify which caption belongs to the AI. |
+| **Pitch, Please** | Sell an absurd product in one sentence. Everyone votes for the pitch they would fund. |
+
+![Real local walkthrough: the semantic judge accepts “tiger shrimp soup” for “tiger prawn soup”](docs/screenshots/prompt-reveal.jpg)
+
+*The second screenshot is from a real local API walkthrough with a fictional nickname. Puzzle images are deliberately generated to illustrate misunderstandings; they are not claimed to be accidental model failures.*
+
+## Meaningful use of OpenAI
+
+- **GPT-6 Astra / Responses:** writes the AI contestant’s bluffs, captions and pitches, and judges prompt guesses by meaning rather than exact spelling.
+- **Image Gen 2.5:** creates the AI drawing. Prompt Gone Wrong supports both a fast pre-generated puzzle and fresh generated puzzles.
+- **Decisions / GPT-6 Luna:** catches bluffs equivalent to the correct answer and checks nicknames, entries and drawings against the room’s content setting.
+- **Realtime:** an optional gameshow narrator announces moments on the host screen using a short-lived browser credential. The standard API key stays on the server.
+
+Model names are configurable; your API project needs access to the selected models. Offline mode is explicitly labelled and uses fixtures instead of real AI.
+
+## What we built today
+
+During the hackathon, we went from a simulated, single-browser idea demo to a working Next.js multiplayer game:
+
+- Original purple gameshow UI, animated CSS mascots, phone drawing canvas and five round types.
+- Room codes and QR joining, player submissions, anonymous voting, author reveals and authoritative server scoring.
+- Live AI text/image generation and semantic judging.
+- Audience joining, crowd voting and a separate leaderboard.
+- Optional Realtime narration and family-friendly / 18+ content settings.
+- A single-container deployment, cached image serving, setup instructions and a deployment runbook.
+
+Automatic progression and improved generation recovery are tracked in [PR #2](https://github.com/ANevgi/BluffClub/pull/2); that work is separate from this README and should only be described as shipped after merging/deploying it.
+
+## How Codex helped
+
+**Concrete example:** the first prototype simulated every other player in one browser. Codex helped migrate it into an authoritative multiplayer state machine: real phones submit entries, the server hides authors until reveal, prevents self-voting and duplicate votes, and awards points from real votes.
+
+Codex also helped build the UI, write API adapters, diagnose a failed-generation screen that stayed visually busy, and resolve overlapping contributions while preserving audience voting, narration and filtering. Source and commit history are in this repository; [the initial multiplayer implementation](https://github.com/ANevgi/BluffClub/commit/3e6aff0) shows the migration.
+
+## Run locally
+
+Requires **Node.js 22+**, npm and an OpenAI API key.
 
 ```sh
-npm install
+git clone https://github.com/ANevgi/BluffClub.git
+cd BluffClub
+npm ci
 cp .env.example .env.local
-# Edit .env.local and set OPENAI_API_KEY. Never commit it.
+```
+
+Edit `.env.local` and set `OPENAI_API_KEY`, then:
+
+```sh
 npm run dev
 ```
 
-Host at http://localhost:3000. Phones must use your laptop's LAN IP, e.g. http://192.168.1.42:3000, on the same Wi-Fi. Venue client isolation may prevent this; use a public Node host or a hotspot if necessary. The host is a spectator; join on a separate phone/browser tab to play. Sessions survive page reloads via sessionStorage. Open tabs independently instead of duplicating a tab to avoid copying a player's session.
+Open **http://localhost:3000**. For phones, use your laptop’s LAN IP on the same Wi-Fi (for example `http://192.168.1.42:3000`). Some venue networks isolate devices; use the deployed site or a hotspot in that case.
 
-## Production / hackathon deployment
+For a production build:
 
 ```sh
-npm ci
 npm run build
 npm start
 ```
 
-bluffclub.heronevents.app runs this as one container behind Heron Connect's Cloudflare tunnel; `deploy/ship.sh` ships it and deploy/RUNBOOK.md has setup, rollback and capacity. Elsewhere, deploy this folder to a single persistent Node service on Railway, Render, Fly or a VM, with the start command above. Set OPENAI_API_KEY and optionally HOST_PASSWORD in that service's environment. The included Dockerfile is another option. PORT is read by Next.js. Keep one instance, no autoscaling; do not deploy this in-memory version to Vercel serverless or the old static Sites URL. Server restarts lose all rooms. No database is required for a single-process demo.
+To explore without API calls, set `DEMO_MODE=true` in `.env.local` and restart. The UI labels this as offline mode.
 
-The existing Sites page remains the earlier simulated prototype; this is a separate real application. Publishing a live Node service requires a hosting account/environment.
+| Variable | Purpose |
+| --- | --- |
+| `OPENAI_API_KEY` | Server-side credential. Never use a `NEXT_PUBLIC_` variable for it. |
+| `OPENAI_TEXT_MODEL` | Text contestant and judge; defaults to `gpt-6-astra`. |
+| `OPENAI_IMAGE_MODEL` | Drawing generation; defaults to `gpt-image-2.5-sunburst`. |
+| `OPENAI_REALTIME_MODEL` | Optional narrator; defaults to `gpt-realtime-2.1`. |
+| `OPENAI_REALTIME_VOICE` | Narrator voice; defaults to `marin`. |
+| `HOST_PASSWORD` | Optional password for creating rooms. |
+| `DEMO_MODE` | Explicit offline fixture mode; defaults to false. |
 
-## Environment
+## Architecture and deployment
 
-- OPENAI_API_KEY: server only, never NEXT_PUBLIC.
-- OPENAI_TEXT_MODEL: defaults to gpt-6-astra; choose a model available to your project.
-- OPENAI_IMAGE_MODEL: defaults to gpt-image-2.5-sunburst.
-- OPENAI_REALTIME_MODEL / OPENAI_REALTIME_VOICE: the narrator's model and voice; default gpt-realtime-2.1 and marin.
-- HOST_PASSWORD: optional password required to create rooms; set for a public demo to limit credit use.
-- DEMO_MODE=true: explicit offline development mode. Clearly shown in the UI. Uses canned AI entries and keyword judging. Default false. No silent fallback from failed live requests.
+**Next.js App Router · React · TypeScript · OpenAI APIs · in-memory rooms.** No database or account registration required.
 
-Model names and request patterns checked against official documentation. Account access must be confirmed with your key. The Decisions API uses gpt-6-luna.
+Run **one persistent Node instance**. Restarting loses rooms; multiple instances would not share state. Polling uses ETags and images are served separately with caching. The deployed app runs in one container behind a Cloudflare tunnel.
 
-## Rounds / AI use
+See the [deployment runbook](deploy/RUNBOOK.md), [Dockerfile](Dockerfile), and [technical notes](docs/TECHNICAL.md). Coordinate deployment with the host so an active game is not interrupted.
 
-1. Human or Hallucination: an explicitly fictional museum question. AI invents a bluff. Decisions rejects a human bluff that means the true answer. Truth votes earn 1,000; successful bluffs earn 500 per vote.
-2. Who Drew That: humans draw on phones; the Images API creates a rough drawing for AI. Find AI for 1,000; wrongly accusing a human gives them 500 and gives AI 500.
-3. Caption Trap: caption the pre-generated pigeon image; a live text model writes the AI caption. Same AI detection scoring.
-4. Pitch, Please: write a product pitch; AI competes. Every human vote gives the author 500. No fake opponent votes.
-5. Prompt Gone Wrong: guess the intended prompt. By default uses the pre-generated tiger-prawn-soup puzzle for fast start. Check “fresh image” to generate a new staged misunderstanding from a small curated bank. Responses semantically judges guesses from 0–100; points = score × 10 plus 500 to every highest-scoring guess (if above zero).
+## Validation and practical limits
 
-Audience: anyone can join the audience at any time, including mid-game. In rounds 1–4 they vote alongside the players. The audience's most-voted entry counts as one extra vote (ties all count) and is marked crowd pick. Audience members who find the truth (round 1) or the bot (rounds 2–3) earn 1,000 points on their own crowd leaderboard; the top five appear with the final scores. In round 5 the audience watches.
+The production build and TypeScript checks have passed during development. Real local API walkthroughs verified text generation, Decisions validation, image generation and semantic judging. Audience capacity is a configured limit, not a promise of tested production capacity. See the [technical notes](docs/TECHNICAL.md) for the load-check command and implementation details.
 
-Host chooses when to close submissions/voting. The displayed timer is advisory. Pending validation requests block closing submissions. Partial rounds may close with absent players. Failed AI requests show an error and offer retry/skip; no points are silently invented. Generation currently happens before the drawing timer starts, to make the hackathon flow reliable.
+This is a hackathon build: rooms are temporary, generation can take time, and AI filtering/judging can be imperfect. Use fictional nicknames and do not submit sensitive information: content checks send nicknames, entries and drawings to OpenAI. API calls cost credits. `.env.local`, keys, dependencies and build artifacts are excluded from Git.
 
-## Rude filter and narrator
+## Credits and existing materials
 
-Rude filter: player nicknames, text entries and drawings go to OpenAI Decisions (gpt-6-luna, one yes/no question) before anyone else sees them; a probable "unsuitable" sends the player back to try again. The host chooses family-friendly (default: no swearing, sexual or crude jokes, slurs, bullying, threats, gore or drugs) or 18+ (swearing and dark humour allowed; hate, harassment or sexual remarks about real people, explicit sexual content and anything involving minors still turned down). Audience nicknames are only checked if they reach the crowd board; any that fail show as "Audience member". At most 16 checks run at once, 429s and 5xx are retried, and if a check still fails the player is asked to try again. Closing submissions gives checks in flight up to 5 s.
+- Original game implementation, UI, CSS mascots and prompts were created during the hackathon with Codex assistance.
+- Social bluffing and party-game inspiration; **no Jackbox source code, artwork, branding or question packs** are used.
+- Pigeon and soup images were pre-generated during development using the built-in image generation tool. Live rounds use the API where described. [Asset prompts and provenance](IMAGE-PROMPTS.md).
+- Existing open-source libraries: Next.js, React, OpenAI’s JavaScript SDK and `qrcode`; versions are recorded in `package-lock.json`.
+- Fonts: DM Sans, Space Grotesk and Archivo Black through Google Fonts, with system fallbacks.
+- No external starter template was used for the app scaffold. No 3D feature is claimed.
 
-Narrator: the host screen's "Turn on narrator" button opens an OpenAI Realtime session (WebRTC, receive-only audio) from the host's browser, with a key from /api/narrator that expires in 60 s (host only; 10 per room, 10 s apart). It speaks one line per phase, built from names, scores and the game's own text, never players' entries; a new phase cuts off the previous line.
+## Submission links
 
-## Architecture
-
-Next.js App Router + React + TypeScript. One /api/game handler owns authoritative in-memory room state. Polling every 1.2 seconds (audience every 2), with ETags. Drawings and generated images are kept in the room and served from /img/<room>-<key>.png with immutable caching, so the polled state stays a few KB and Cloudflare serves each image to the audience from its edge. Random room codes, per-host and per-player secret tokens. Server validates phase, duplicate submissions/votes, own-entry voting, lengths and host controls. Authors/answers are not sent before reveal. No real-time database, auth provider or WebSocket service. No unit tests per hackathon request; `node scripts/load-test.mjs <url> [audience]` plays a full five-round game against a running server (use DEMO_MODE=true) with 12 players and an audience polling like phones, checks seats, crowd scoring and images, and prints latency.
-
-## Credits / Codex
-
-Original code, UI, CSS mascots and generated assets built with Codex during the London hackathon chat. Social bluffing inspiration; no Jackbox code, assets or branding. Google Fonts: DM Sans, Space Grotesk, Archivo Black (system fallback). Pre-generated pigeon drawings and mystery bowl created with built-in image generation. The soup image was deliberately constructed as a misunderstanding, not claimed as a real accidental failure. Legacy asset prompts are in IMAGE-PROMPTS.md.
-
-Concrete Codex contribution: migrated the simulated browser-only prototype into an authoritative multiplayer state machine, implemented server-side API adapters, hid entry ownership until reveal, and added actual vote-based scoring.
-
-## Limits
-
-Hackathon prototype, not production infrastructure. Rooms live for 3 hours of inactivity, max 30 rooms, each with 12 players and 300 audience. No persistence, distributed coordination, anti-cheat or per-IP rate limits, and no moderation beyond the automatic rude filter. Without HOST_PASSWORD anyone can host and spend the API key. API calls cost money. Player nicknames, text entries and drawings are sent to OpenAI for the rude filter, bluffs for validation and prompt guesses for judging; audience nicknames only if they reach the crowd board. The narrator sends OpenAI names, scores and the game's own text. Use fictional nicknames and do not enter sensitive information. No 3D yet.
-
-## Official references
-
-- https://nextjs.org/docs/app/getting-started/installation
-- https://developers.openai.com/api/docs/guides/text
-- https://developers.openai.com/api/docs/guides/image-generation
-- https://developers.openai.com/api/docs/guides/decisions
+- **Project:** Bluff Club — an AI-versus-humans party game for friends, teams and event groups.
+- **Live demo:** https://bluffclub.heronevents.app
+- **Repository:** https://github.com/ANevgi/BluffClub
+- **Team:** Aryan, Asim and Dillion.
+- **Contact email:** TODO — add before submitting.
+- **Demo video (90 seconds maximum):** TODO — add the public recording link.
