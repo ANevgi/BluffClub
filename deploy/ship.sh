@@ -42,7 +42,14 @@ check_disk() {
 check_health() {
   local body="" attempt
   for attempt in 1 2 3 4 5 6 7 8 9 10; do
-    body="$(curl -sS --max-time 10 "$URL/api/game?status=1" 2>&1 || true)"
+    # When this Mac still caches a lookup from before the DNS record existed, ask 1.1.1.1 instead:
+    # the check is of the site, not of this Mac's cache.
+    body="$(curl -sS --max-time 10 "$URL/api/game?status=1" 2>&1)" || {
+      local host="${URL#https://}" ip
+      host="${host%%/*}"
+      ip="$(dig +short "$host" @1.1.1.1 | grep -E '^[0-9.]+$' | head -1)"
+      body="$(curl -sS --max-time 10 --resolve "$host:443:$ip" "$URL/api/game?status=1" 2>&1 || true)"
+    }
     if python3 -c 'import json, sys; d = json.loads(sys.argv[1]); sys.exit(0 if d.get("ready") or d.get("demo") else 1)' "$body" 2>/dev/null; then
       echo "GET $URL/api/game?status=1 -> $body"
       python3 -c 'import json, sys; sys.exit(0 if json.loads(sys.argv[1]).get("passwordRequired") else 1)' "$body" \
@@ -126,6 +133,12 @@ exec 9>.ship.lock
 flock -n 9 || { echo "another deploy holds $REMOTE/.ship.lock" >&2; exit 1; }
 touch release.env
 IMAGE_TAG=$tag ./dc config --quiet
+# Our service names become DNS names on the heronmeet network. One that matches a heronmeet service
+# (a second \`web\`) would take a share of heronevents.app's traffic.
+theirs="\$(docker ps -a --filter label=com.docker.compose.project=heronmeet --format '{{.Label "com.docker.compose.service"}}' | sort -u)"
+for svc in \$(IMAGE_TAG=$tag ./dc config --services); do
+  if printf '%s\n' "\$theirs" | grep -qx "\$svc"; then echo "service \$svc clashes with heronmeet's \$svc on the heronmeet network" >&2; exit 1; fi
+done
 cur="\$(sed -n 's/^IMAGE_TAG=//p' release.env)"
 prev="\$(sed -n 's/^PREVIOUS_IMAGE_TAG=//p' release.env)"
 [ -n "\$cur" ] && [ "\$cur" != "$tag" ] && prev="\$cur"
@@ -133,9 +146,9 @@ printf 'IMAGE_TAG=%s\nPREVIOUS_IMAGE_TAG=%s\n' "$tag" "\$prev" >release.env.new
 mv release.env.new release.env
 echo "IMAGE_TAG=$tag PREVIOUS_IMAGE_TAG=\${prev:-<none>}"
 ./dc up -d --remove-orphans --wait --wait-timeout 180
-got="\$(docker inspect -f '{{.Config.Image}}' "\$(./dc ps -q web)")"
-[ "\$got" = "$image" ] || { echo "web runs \$got, not $image" >&2; exit 1; }
-echo "OK: web runs \$got"
+got="\$(docker inspect -f '{{.Config.Image}}' "\$(./dc ps -q bluffclub)")"
+[ "\$got" = "$image" ] || { echo "bluffclub runs \$got, not $image" >&2; exit 1; }
+echo "OK: bluffclub runs \$got"
 # Old bluffclub tags go; this one and the previous stay for rollback. Ours only.
 docker images --filter 'reference=bluffclub-web' --format '{{.Repository}}:{{.Tag}}' | while read -r old; do
   case "\${old#*:}" in

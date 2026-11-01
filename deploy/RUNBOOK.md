@@ -8,7 +8,7 @@ runs Heron Connect (`heronmeet`), beside other products. Everything of ours ther
 |---|---|
 | Host | The one in HeronEvents' `deploy/RUNBOOK.md`. `deploy/ship.sh` takes it from `BLUFFCLUB_HOST=ec2-user@<host>` and the key from `BLUFFCLUB_KEY` |
 | Our files | `/data/bluffclub`: `compose.prod.yml`, `.env` (secrets, 600), `release.env` (image tags), `dc` |
-| Compose | project `bluffclub`: one service, `web` (Next.js, :3000). No host ports. Joins the external `heronmeet` network with the alias `bluffclub` |
+| Compose | project `bluffclub`: one service, `bluffclub` (Next.js, :3000). No host ports. Joins the external `heronmeet` network, where its service name is its DNS name. Never name a service like one of heronmeet's (`web`, `api`, `db`…): it would take a share of their traffic. `ship.sh` checks |
 | Ingress | the `heronmeet` tunnel routes `bluffclub.heronevents.app` to `http://bluffclub:3000` (HeronEvents' `deploy/cloudflared/config.yml`). DNS: a proxied CNAME `bluffclub` → `<heronmeet tunnel id>.cfargotunnel.com` in the `heronevents.app` zone |
 | Images | `bluffclub-web:<commit>`, built on the Mac. The live tag and the previous one are in `release.env` |
 | State | In memory only. A deploy or restart ends every room in play: **don't ship during a game** |
@@ -60,7 +60,7 @@ deploy/ship.sh            # build this commit for linux/arm64, load it on the ho
 BUILD_ON_HOST=1 deploy/ship.sh   # the same, but send the source and build on the host: use this on venue Wi-Fi
 deploy/ship.sh rollback   # the previous tag again
 deploy/ship.sh status     # tags, container, disk
-H /data/bluffclub/dc logs -f --tail 100 web
+H /data/bluffclub/dc logs -f --tail 100 bluffclub
 ```
 
 `ship.sh` refuses an uncommitted checkout or a `/data` over 85% full, and checks
@@ -70,7 +70,7 @@ H /data/bluffclub/dc logs -f --tail 100 web
 
 ```bash
 printf 'HOST_PASSWORD=%s\n' "$value" | H HERONMEET_ENV_FILE=/data/bluffclub/.env python3 /data/heronmeet/env-set.py
-H /data/bluffclub/dc up -d --force-recreate web   # re-reads .env; ends every room in play
+H /data/bluffclub/dc up -d --force-recreate bluffclub   # re-reads .env; ends every room in play
 ```
 
 `H` means `ssh -i "$BLUFFCLUB_KEY" "$BLUFFCLUB_HOST"`.
