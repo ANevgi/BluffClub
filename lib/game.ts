@@ -1,4 +1,5 @@
 import {randomBytes,randomInt} from 'node:crypto';
+import {drawingBrief,writingBrief} from './player-style';
 import {demoMode,imageAI,textAI,sameMeaning,judge,safeError} from './ai';
 export type Kind='bluff'|'draw'|'caption'|'pitch'|'prompt';
 type Phase='lobby'|'generating'|'submit'|'vote'|'judging'|'reveal'|'finished';
@@ -35,8 +36,8 @@ export async function prepare(r:Room,retry=false){if(r.busy)throw new Error('Alr
  r.phase='generating';r.error=null;r.busy=true;r.deadline=null;const job=++r.generation;const current=r.round!;
  try{let bot:Entry|undefined;
  if(current.kind==='prompt'){if(!current.image)current.image=r.demo?'/assets/mystery-bowl.png':await imageAI(current.imagePrompt!);if(r.demo&&current.imagePrompt){current.answer='tiger prawn soup';current.fixture='Offline pre-generated image.'}}
- else if(current.kind==='draw'){const image=r.demo?'/assets/pigeon-desk.png':await imageAI(`Drawing game prompt: ${current.prompt}. White 2:1 canvas. A rushed non-artist with a trackpad and 30 seconds. At most 15 clumsy strokes, uneven gaps, overshoots, awkward proportions, 70% empty white. Only opaque black #252620 and orange #fe653b uniform round pen. No shapes, fills, typography, shading or polished art. No text.`);bot={id:id(),owner:'AI',image}}
- else {const fixtures={bluff:'haunted teaspoon',caption:'My position has been made re-duck-dant.',pitch:'Leaf the noise behind. Premium silence for your indoor jungle.'};const instructions=current.kind==='bluff'?`Invent one plausible funny WRONG answer to this fictional trivia blank. The correct answer is ${current.answer}; do not repeat or paraphrase it.`:current.kind==='caption'?'Write one casual funny caption for a pigeon fired from its office job, carrying a bag.':'Write one funny persuasive one-sentence sales pitch for this ridiculous product.';const text=r.demo?fixtures[current.kind as keyof typeof fixtures]:await textAI(`${instructions} Return only the entry, under 120 characters. No quotes, labels or explanation.`,current.prompt);bot={id:id(),owner:'AI',text:text.slice(0,180)}}
+ else if(current.kind==='draw'){const image=r.demo?'/assets/pigeon-desk.png':await imageAI(drawingBrief(current.prompt,randomInt(3)));bot={id:id(),owner:'AI',image}}
+ else {const fixtures={bluff:'a spoon',caption:'hr said i had to fly',pitch:'so it cant hear you singing'};const text=r.demo?fixtures[current.kind as keyof typeof fixtures]:await textAI(writingBrief(current.kind,current.answer,randomInt(3)),current.prompt);bot={id:id(),owner:'AI',text:text.trim().split(/\s+/).slice(0,12).join(' ').slice(0,80)}}
  if(job!==r.generation)return;if(bot)r.entries=[bot];if(current.kind==='bluff')r.entries.push({id:id(),owner:'Truth',text:current.answer});r.phase='submit';r.deadline=Date.now()+(current.kind==='draw'?60:45)*1000;
  }catch(e){if(job===r.generation)r.error=safeError(e)}finally{if(job===r.generation)r.busy=false}
 }
