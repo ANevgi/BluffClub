@@ -2,6 +2,7 @@
 # Ship Bluff Club to https://bluffclub.heronevents.app (deploy/RUNBOOK.md).
 #
 #   deploy/ship.sh            build this commit, ship it, start it, check it
+#   BUILD_ON_HOST=1 deploy/ship.sh   the same, but build on the host (slow uplinks, venue Wi-Fi)
 #   deploy/ship.sh rollback   run the previous image tag again
 #   deploy/ship.sh status     what is running on the host, and its disk
 #
@@ -92,14 +93,23 @@ ship() {
     docker network inspect heronmeet >/dev/null || { echo 'no heronmeet network: Heron Connect must be running' >&2; exit 1; }
     echo 'OK: .env (600) and the heronmeet network'"
 
-  say "building $image for linux/arm64"
-  docker build --platform linux/arm64 -t "$image" .
-
-  say "shipping the image"
-  if [ "$(docker image inspect -f '{{.Id}}' "$image")" = "$(remote "docker image inspect -f '{{.Id}}' $image 2>/dev/null" || true)" ]; then
-    echo "the host already has this exact image"
+  if [ "${BUILD_ON_HOST:-0}" = 1 ]; then
+    # On a slow connection (venue Wi-Fi): send the committed source, a few MB, not the ~400 MB
+    # image, and let the host (arm64, fast network) build it.
+    say "building $image on the host"
+    git archive --format=tar HEAD | gzip -1 \
+      | remote "rm -rf $REMOTE/build && mkdir -p $REMOTE/build && tar -xzf - -C $REMOTE/build"
+    remote "set -e; cd $REMOTE/build; docker build --platform linux/arm64 -t $image .; rm -rf $REMOTE/build"
   else
-    docker save "$image" | gzip -1 | remote 'gunzip | docker load'
+    say "building $image for linux/arm64"
+    docker build --platform linux/arm64 -t "$image" .
+
+    say "shipping the image"
+    if [ "$(docker image inspect -f '{{.Id}}' "$image")" = "$(remote "docker image inspect -f '{{.Id}}' $image 2>/dev/null" || true)" ]; then
+      echo "the host already has this exact image"
+    else
+      docker save "$image" | gzip -1 | remote 'gunzip | docker load'
+    fi
   fi
   check_disk
 

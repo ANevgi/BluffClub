@@ -57,6 +57,7 @@ Heron Connect's `/api/auth/*` and `/api/me/photo`.
 
 ```bash
 deploy/ship.sh            # build this commit for linux/arm64, load it on the host, start it, check it
+BUILD_ON_HOST=1 deploy/ship.sh   # the same, but send the source and build on the host: use this on venue Wi-Fi
 deploy/ship.sh rollback   # the previous tag again
 deploy/ship.sh status     # tags, container, disk
 H /data/bluffclub/dc logs -f --tail 100 web
