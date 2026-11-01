@@ -31,6 +31,16 @@ For friends, teams and event groups who want an instant shared icebreaker. AI to
 
 For a short showcase, choose **Who Drew That?** and **Prompt Gone Wrong**. The host is a spectator; join separately on a phone to play. The optional voice narrator plays through the host’s speakers.
 
+## See it in action
+
+Captured on the live site with fictional nicknames: five players and an audience of 30.
+
+| | |
+| --- | --- |
+| ![Host options: pick rounds, 18+ room and the rude filter explained](docs/screenshots/02-host-options.jpg) **Set up.** Pick rounds and the room's content setting; the host card explains how the rude filter works. | ![Host lobby with QR code, room code, five players, Bluffbot and 30 audience members](docs/screenshots/03-host-lobby.jpg) **Lobby.** The big screen shows a QR code and room code, 12 player seats, the audience count and the narrator switch. |
+| ![A player's phone: the rude filter turns down a rude entry](docs/screenshots/04-rude-filter.jpg) **Rude filter.** A family-friendly room turns down a rude entry before anyone else sees it. | ![Host vote screen: seven anonymous answers, three of five player votes and 22 of 30 audience votes](docs/screenshots/05-host-vote.jpg) **Vote.** Anonymous answers, including Bluffbot's; players and audience vote. |
+| ![Audience phone after the reveal: the truth, Bluffbot's bluff, the crowd pick and "You found the truth!"](docs/screenshots/06-audience-reveal.jpg) **Reveal.** Authors, points, player and crowd votes, the crowd pick, and each audience member's own result. | ![Final scores: Bluffbot wins, with the crowd leaderboard below](docs/screenshots/07-final-scores.jpg) **Final scores.** Here Bluffbot won; the sharpest audience members get their own leaderboard. |
+
 ## Five ways to distrust your friends
 
 | Round | What happens |
@@ -63,9 +73,9 @@ During the hackathon, we went from a simulated, single-browser idea demo to a wo
 - Live AI text/image generation and semantic judging.
 - Audience joining, crowd voting and a separate leaderboard.
 - Optional Realtime narration and family-friendly / 18+ content settings.
+- Automatic progression: rounds advance as soon as every player has locked in, and image generation recovers from slow or failed requests ([PR #2](https://github.com/ANevgi/BluffClub/pull/2)).
+- Fresh prompts every game, drawn from banks of bluffs, drawings and pitches.
 - A single-container deployment, cached image serving, setup instructions and a deployment runbook.
-
-Automatic progression and improved generation recovery are tracked in [PR #2](https://github.com/ANevgi/BluffClub/pull/2); that work is separate from this README and should only be described as shipped after merging/deploying it.
 
 ## How Codex helped
 
