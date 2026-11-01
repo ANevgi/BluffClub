@@ -16,7 +16,9 @@ await post('join',{code,name:'Seat 13',as:'player'}).then(()=>fail('a 13th playe
 const audience=await Promise.all(Array.from({length:AUDIENCE},(_,i)=>post('join',{code,name:`Watcher ${i+1}`,as:'audience'})));
 const host=phone(code,created.token,'host'),phones=[...players.map(p=>phone(code,p.token,'player')),...audience.map(a=>phone(code,a.token,'audience'))];
 const expected=new Map(audience.map(a=>[a.token,0]));const t0=performance.now();
-await until(host,v=>v.audience===AUDIENCE&&v.players.length===PLAYERS,'everyone in the lobby');await sleep(HOLD);await post('advance',{code},created.token);
+await until(host,v=>v.audience===AUDIENCE&&v.players.length===PLAYERS&&v.pets?.length===AUDIENCE*4,'everyone in the lobby, each audience member with a pet');await sleep(HOLD);if(phones.some(p=>p.view&&'pets' in p.view))fail('a phone was sent the crowd\'s pet seeds');await post('advance',{code},created.token);
+// Anyone who joins after the start is a plain dot: their phone says so, the host counts them, and nobody is sent pet seeds any more.
+const latecomer=phone(code,(await post('join',{code,name:'Latecomer',as:'audience'})).token,'late');await until(latecomer,v=>v.you?.late===true,'the latecomer to be a dot');latecomer.stop=true;await until(host,v=>v.late===1&&!('pets' in v),'the host to draw one late dot');console.log('latecomer is a dot, not a pet');
 for(let round=0;round<5;round++){
  const v=await until(host,v=>v.phase==='submit','submissions');const kind=v.round.kind;console.log(`round ${round+1}: ${kind}`);await sleep(HOLD);
  await Promise.all(players.map((p,i)=>post('submit',{code,value:kind==='draw'?PNG:`${kind} entry ${i+1} ${Math.random().toString(36).slice(2,7)}`},p.token)));
