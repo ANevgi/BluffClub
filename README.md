@@ -4,11 +4,17 @@
 
 **Bluff Club is a browser party game where friends compete against an AI player that is trying to blend in.** Draw, invent convincing lies, write captions and pitch ridiculous products—then vote, reveal who made what, and discover who fooled the room.
 
-**[Play Bluff Club](https://bluffclub.heronevents.app)** · **[GitHub](https://github.com/ANevgi/BluffClub)** · [90-second demo outline](DEMO-SCRIPT.md)
+**[Play Bluff Club](https://bluffclub.heronevents.app)** · **[Watch the demo video](https://github.com/ANevgi/BluffClub/blob/main/docs/demo/bluff-club-demo.mp4)** · **[GitHub](https://github.com/ANevgi/BluffClub)** · [90-second demo outline](DEMO-SCRIPT.md)
 
 Built for the **DevDay Exchange Community Hackathon, London — 1 November 2026**.
 
 ![Bluff Club home screen with phone joining and round selection](docs/screenshots/home.jpg)
+
+## Demo video
+
+[![Demo video: the drawing round, "A goldfish at the gym", on the host screen](docs/demo/demo-thumbnail.jpg)](https://github.com/ANevgi/BluffClub/blob/main/docs/demo/bluff-club-demo.mp4)
+
+**▶ [Watch the 90-second demo](https://github.com/ANevgi/BluffClub/blob/main/docs/demo/bluff-club-demo.mp4)**, filmed live at the hackathon: a room is created on the laptop, players join on their phones, draw, and try to spot the AI's drawing.
 
 ## Who it is for and why
 
@@ -158,4 +164,4 @@ This is a hackathon build: rooms are temporary, generation can take time, and AI
 - **Repository:** https://github.com/ANevgi/BluffClub
 - **Team:** Aryan, Asim and Dillion.
 - **Contact email:** TODO — add before submitting.
-- **Demo video (90 seconds maximum):** TODO — add the public recording link.
+- **Demo video (90 seconds):** https://github.com/ANevgi/BluffClub/blob/main/docs/demo/bluff-club-demo.mp4
