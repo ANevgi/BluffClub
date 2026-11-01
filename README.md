@@ -163,5 +163,5 @@ This is a hackathon build: rooms are temporary, generation can take time, and AI
 - **Live demo:** https://bluffclub.heronevents.app
 - **Repository:** https://github.com/ANevgi/BluffClub
 - **Team:** Aryan, Asim and Dillion.
-- **Contact email:** TODO — add before submitting.
+- **Contact email:** anevgi.studio@gmail.com, asim@poptani@gmail.com, dkishere@gmail.com
 - **Demo video (90 seconds):** https://youtu.be/L2JXNzmuRXg
