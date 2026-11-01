@@ -36,7 +36,8 @@ Heron Connect's `/api/auth/*` and `/api/me/photo`.
    ```
 
    `OPENAI_TEXT_MODEL` and `OPENAI_IMAGE_MODEL` go in the same way if the defaults are not
-   available to the key. Set `HOST_PASSWORD`: without it anyone can create rooms on the key.
+   available to the key. Production leaves `HOST_PASSWORD` empty so anyone can host: anyone
+   with the link can then spend the key, up to 30 rooms at a time. Set it to require a password.
 
 2. **Route.** In HeronEvents' `deploy/cloudflared/config.yml`, above the catch-all:
 
