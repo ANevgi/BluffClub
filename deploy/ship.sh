@@ -3,6 +3,7 @@
 #
 #   deploy/ship.sh            build this commit, ship it, start it, check it
 #   BUILD_ON_HOST=1 deploy/ship.sh   the same, but build on the host (slow uplinks, venue Wi-Fi)
+#   FORCE=1 deploy/ship.sh    deploy even while rooms have people in them (it ends their games)
 #   deploy/ship.sh rollback   run the previous image tag again
 #   deploy/ship.sh status     what is running on the host, and its disk
 #
@@ -133,6 +134,11 @@ exec 9>.ship.lock
 flock -n 9 || { echo "another deploy holds $REMOTE/.ship.lock" >&2; exit 1; }
 touch release.env
 IMAGE_TAG=$tag ./dc config --quiet
+# Rooms live in memory: restarting ends every game in play. Refuse while anyone is in a room, unless FORCE=1.
+if [ "${FORCE:-0}" != 1 ] && cid="\$(./dc ps -q bluffclub 2>/dev/null)" && [ -n "\$cid" ]; then
+  live="\$(docker exec "\$cid" node -e "fetch('http://127.0.0.1:3000/api/game?status=1').then(r=>r.json()).then(d=>console.log(d.live||0),()=>console.log(0))")"
+  [ "\$live" = 0 ] || { echo "\$live room(s) have people in them; deploying now would end their games. Try again later, or FORCE=1." >&2; exit 3; }
+fi
 # Our service names become DNS names on the heronmeet network. One that matches a heronmeet service
 # (a second \`web\`) would take a share of heronevents.app's traffic.
 theirs="\$(docker ps -a --filter label=com.docker.compose.project=heronmeet --format '{{.Label "com.docker.compose.service"}}' | sort -u)"

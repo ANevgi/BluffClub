@@ -30,6 +30,8 @@ export function createRoom(password:unknown,plan:unknown,freshImages:unknown,adu
  let code='';do{code=Array.from({length:5},()=> 'ABCDEFGHJKLMNPQRSTUVWXYZ'[randomInt(24)]).join('')}while(rooms.has(code));
  const r:Room={code,hostToken:token(),players:[],audience:new Map(),audienceVotes:{},crowdLeaders:[],images:new Map(),adult:adult===true,botScore:0,phase:'lobby',index:-1,round:null,entries:[],votes:{},pending:new Set(),error:null,busy:false,created:Date.now(),touched:Date.now(),deadline:null,generation:0,plan:[...new Set(chosen)],freshImages:!!freshImages,demo:demoMode(),skipped:[]};rooms.set(code,r);return {code,token:r.hostToken,role:'host'};
 }
+// Rooms with people who were here in the last 2 minutes and haven't finished. A deploy restarts the server and ends them, so ship.sh waits for 0.
+export function liveRooms(){let n=0;for(const r of rooms.values())if(r.phase!=='finished'&&Date.now()-r.touched<2*60*1000&&(r.players.length||r.audience.size))n++;return n}
 export function roomFor(code:string){const r=rooms.get(code.toUpperCase());if(!r||Date.now()-r.touched>3*60*60*1000)throw new Gone('Room expired or not found. Ask the host for a new code.');r.touched=Date.now();return r}
 // Everything a player types or draws passes the rude filter (OpenAI Decisions) before anyone else sees it.
 const refused=(r:Room,what:string)=>r.adult?`Even in an 18+ room, that ${what} crosses the line. Try another.`:`The rude filter turned that ${what} down. Keep it family-friendly and try another.`;
