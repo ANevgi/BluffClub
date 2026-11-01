@@ -34,6 +34,7 @@ The existing Sites page remains the earlier simulated prototype; this is a separ
 - OPENAI_API_KEY: server only, never NEXT_PUBLIC.
 - OPENAI_TEXT_MODEL: defaults to gpt-6-astra; choose a model available to your project.
 - OPENAI_IMAGE_MODEL: defaults to gpt-image-2.5-sunburst.
+- OPENAI_REALTIME_MODEL / OPENAI_REALTIME_VOICE: the narrator's model and voice; default gpt-realtime-2.1 and marin.
 - HOST_PASSWORD: optional password required to create rooms; set for a public demo to limit credit use.
 - DEMO_MODE=true: explicit offline development mode. Clearly shown in the UI. Uses canned AI entries and keyword judging. Default false. No silent fallback from failed live requests.
 
@@ -51,6 +52,12 @@ Audience: anyone can join the audience at any time, including mid-game. In round
 
 Host chooses when to close submissions/voting. The displayed timer is advisory. Pending validation requests block closing submissions. Partial rounds may close with absent players. Failed AI requests show an error and offer retry/skip; no points are silently invented. Generation currently happens before the drawing timer starts, to make the hackathon flow reliable.
 
+## Rude filter and narrator
+
+Rude filter: player nicknames, text entries and drawings go to OpenAI Decisions (gpt-6-luna, one yes/no question) before anyone else sees them; a probable "unsuitable" sends the player back to try again. The host chooses family-friendly (default: no swearing, sexual or crude jokes, slurs, bullying, threats, gore or drugs) or 18+ (swearing and dark humour allowed; hate, harassment or sexual remarks about real people, explicit sexual content and anything involving minors still turned down). Audience nicknames are only checked if they reach the crowd board; any that fail show as "Audience member". At most 16 checks run at once, 429s and 5xx are retried, and if a check still fails the player is asked to try again. Closing submissions gives checks in flight up to 5 s.
+
+Narrator: the host screen's "Turn on narrator" button opens an OpenAI Realtime session (WebRTC, receive-only audio) from the host's browser, with a key from /api/narrator that expires in 60 s (host only; 10 per room, 10 s apart). It speaks one line per phase, built from names, scores and the game's own text, never players' entries; a new phase cuts off the previous line.
+
 ## Architecture
 
 Next.js App Router + React + TypeScript. One /api/game handler owns authoritative in-memory room state. Polling every 1.2 seconds (audience every 2), with ETags. Drawings and generated images are kept in the room and served from /img/<room>-<key>.png with immutable caching, so the polled state stays a few KB and Cloudflare serves each image to the audience from its edge. Random room codes, per-host and per-player secret tokens. Server validates phase, duplicate submissions/votes, own-entry voting, lengths and host controls. Authors/answers are not sent before reveal. No real-time database, auth provider or WebSocket service. No unit tests per hackathon request; `node scripts/load-test.mjs <url> [audience]` plays a full five-round game against a running server (use DEMO_MODE=true) with 12 players and an audience polling like phones, checks seats, crowd scoring and images, and prints latency.
@@ -63,7 +70,7 @@ Concrete Codex contribution: migrated the simulated browser-only prototype into 
 
 ## Limits
 
-Hackathon prototype, not production infrastructure. Rooms live for 3 hours of inactivity, max 30 rooms, each with 12 players and 300 audience. No persistence, distributed coordination, sophisticated moderation, anti-cheat or per-IP rate limits. Set HOST_PASSWORD before public hosting. API calls cost money. Names, submissions and drawings are sent to OpenAI only where needed (bluff validation / AI prompt judging; drawing prompts, not human strokes). Use fictional nicknames and do not enter sensitive information. No 3D or voice integration yet.
+Hackathon prototype, not production infrastructure. Rooms live for 3 hours of inactivity, max 30 rooms, each with 12 players and 300 audience. No persistence, distributed coordination, anti-cheat or per-IP rate limits, and no moderation beyond the automatic rude filter. Without HOST_PASSWORD anyone can host and spend the API key. API calls cost money. Player nicknames, text entries and drawings are sent to OpenAI for the rude filter, bluffs for validation and prompt guesses for judging; audience nicknames only if they reach the crowd board. The narrator sends OpenAI names, scores and the game's own text. Use fictional nicknames and do not enter sensitive information. No 3D yet.
 
 ## Official references
 
