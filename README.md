@@ -41,6 +41,12 @@ Captured on the live site with fictional nicknames: five players and an audience
 | ![A player's phone: the rude filter turns down a rude entry](docs/screenshots/04-rude-filter.jpg) **Rude filter.** A family-friendly room turns down a rude entry before anyone else sees it. | ![Host vote screen: seven anonymous answers, three of five player votes and 22 of 30 audience votes](docs/screenshots/05-host-vote.jpg) **Vote.** Anonymous answers, including Bluffbot's; players and audience vote. |
 | ![Audience phone after the reveal: the truth, Bluffbot's bluff, the crowd pick and "You found the truth!"](docs/screenshots/06-audience-reveal.jpg) **Reveal.** Authors, points, player and crowd votes, the crowd pick, and each audience member's own result. | ![Final scores: Bluffbot wins, with the crowd leaderboard below](docs/screenshots/07-final-scores.jpg) **Final scores.** Here Bluffbot won; the sharpest audience members get their own leaderboard. |
 
+## Last-minute addition: dot pets
+
+Everyone who joins before the host starts gets a pet: a little animated dot whose colour, eyes, mood and accessory come from their id, so their phone ("This is you: a floaty lime dot with one big eye") and the big screen show the same one. Players' pets wait on the stage with their names next to Bluffbot; the audience's roam the green room, drawn on one canvas so a full room of 300 stays smooth. Anyone who arrives after the game starts gets a plain dot.
+
+![The green room: 150 audience pets roam the pen while 12 players' pets wait on the stage with Bluffbot](docs/screenshots/08-pets.jpg)
+
 ## Five ways to distrust your friends
 
 | Round | What happens |
@@ -75,6 +81,7 @@ During the hackathon, we went from a simulated, single-browser idea demo to a wo
 - Optional Realtime narration and family-friendly / 18+ content settings.
 - Automatic progression: rounds advance as soon as every player has locked in, and image generation recovers from slow or failed requests ([PR #2](https://github.com/ANevgi/BluffClub/pull/2)).
 - Fresh prompts every game, drawn from banks of bluffs, drawings and pitches.
+- Lobby dot pets for everyone who joins before the start; latecomers get a plain dot.
 - A single-container deployment, cached image serving, setup instructions and a deployment runbook.
 
 ## How Codex helped
