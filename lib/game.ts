@@ -2,6 +2,8 @@ import {randomBytes,randomInt} from 'node:crypto';
 import {drawingBrief,writingBrief} from './player-style';
 import {demoMode,imageAI,textAI,sameMeaning,judge,safeError} from './ai';
 import {MAX_PLAYERS,MAX_AUDIENCE,CROWD_REWARD} from './limits';
+// The room or session no longer exists (expired, or the server restarted): the page drops its session.
+export class Gone extends Error{}
 export type Kind='bluff'|'draw'|'caption'|'pitch'|'prompt';
 type Phase='lobby'|'generating'|'submit'|'vote'|'judging'|'reveal'|'finished';
 type Player={id:string;token:string;name:string;score:number};
@@ -28,10 +30,10 @@ export function createRoom(password:unknown,plan:unknown,freshImages:unknown){if
  let code='';do{code=Array.from({length:5},()=> 'ABCDEFGHJKLMNPQRSTUVWXYZ'[randomInt(24)]).join('')}while(rooms.has(code));
  const r:Room={code,hostToken:token(),players:[],audience:new Map(),audienceVotes:{},crowdLeaders:[],images:new Map(),botScore:0,phase:'lobby',index:-1,round:null,entries:[],votes:{},pending:new Set(),error:null,busy:false,created:Date.now(),touched:Date.now(),deadline:null,generation:0,plan:[...new Set(chosen)],freshImages:!!freshImages,demo:demoMode(),skipped:[]};rooms.set(code,r);return {code,token:r.hostToken,role:'host'};
 }
-export function roomFor(code:string){const r=rooms.get(code.toUpperCase());if(!r||Date.now()-r.touched>3*60*60*1000)throw new Error('Room expired or not found. Ask the host for a new code.');r.touched=Date.now();return r}
+export function roomFor(code:string){const r=rooms.get(code.toUpperCase());if(!r||Date.now()-r.touched>3*60*60*1000)throw new Gone('Room expired or not found. Ask the host for a new code.');r.touched=Date.now();return r}
 export function joinRoom(r:Room,name:unknown,as:unknown){const n=cleanName(name);if(as==='audience'){if(r.audience.size>=MAX_AUDIENCE)throw new Error('The audience is full.');const a={id:id(),token:token(),name:n,score:0};r.audience.set(a.token,a);return {code:r.code,token:a.token,role:'audience'}}
  if(r.phase!=='lobby')throw new Error('This game has started. Join the audience instead.');if(r.players.length>=MAX_PLAYERS)throw new Error(`All ${MAX_PLAYERS} player seats are taken. Join the audience instead.`);if(r.players.some(p=>p.name.toLowerCase()===n.toLowerCase()))throw new Error('That nickname is taken.');const p={id:id(),token:token(),name:n,score:0};r.players.push(p);return {code:r.code,token:p.token,role:'player'}}
-function auth(r:Room,t:string){if(t===r.hostToken)return {role:'host' as const};const p=r.players.find(p=>p.token===t);if(p)return {role:'player' as const,p};const a=r.audience.get(t);if(a)return {role:'audience' as const,p:a};throw new Error('Session not found. Rejoin with your room code.')}
+function auth(r:Room,t:string){if(t===r.hostToken)return {role:'host' as const};const p=r.players.find(p=>p.token===t);if(p)return {role:'player' as const,p};const a=r.audience.get(t);if(a)return {role:'audience' as const,p:a};throw new Gone('Session not found. Rejoin with your room code.')}
 function hostOnly(r:Room,t:string){if(t!==r.hostToken)throw new Error('Only the host can do that.')}
 // Images live here and are served from /img/<code>-<key>.png, so polls stay small and Cloudflare can cache each image once.
 function storeImage(r:Room,dataUrl:string){const key=id();r.images.set(key,Buffer.from(dataUrl.slice(dataUrl.indexOf(',')+1),'base64'));return `/img/${r.code}-${key}.png`}
