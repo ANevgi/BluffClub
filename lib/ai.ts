@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 export const demoMode=()=>process.env.DEMO_MODE==='true';
 function client(){if(!process.env.OPENAI_API_KEY)throw new Error('Set OPENAI_API_KEY in .env.local and restart the server.');return new OpenAI({apiKey:process.env.OPENAI_API_KEY,timeout:150_000,maxRetries:0})}
 export async function textAI(instructions:string,input:string){const r=await client().responses.create({model:process.env.OPENAI_TEXT_MODEL||'gpt-6-astra',instructions,input,max_output_tokens:2000});const t=r.output_text?.trim();if(!t)throw new Error('AI returned no text. Retry this round.');return t}
-export async function imageAI(prompt:string){const r=await client().images.generate({model:process.env.OPENAI_IMAGE_MODEL||'gpt-image-2.5-sunburst',prompt,size:'1536x1024',quality:'low',n:1});const b=r.data?.[0]?.b64_json;if(!b)throw new Error('Image generation returned no image.');return `data:image/png;base64,${b}`}
+export async function imageAI(prompt:string){const r=await client().images.generate({model:process.env.OPENAI_IMAGE_MODEL||'gpt-image-2.5-sunburst',prompt,size:'1536x1024',quality:'low',n:1},{timeout:240_000,maxRetries:1});const b=r.data?.[0]?.b64_json;if(!b)throw new Error('Image generation returned no image.');return `data:image/png;base64,${b}`}
 // At most 16 Decisions calls at once, so a crowd submitting together queues instead of hitting rate limits.
 let deciding=0;const queue:(()=>void)[]=[];
 async function slot<T>(f:()=>Promise<T>){if(deciding<16)deciding++;else await new Promise<void>(go=>queue.push(go));try{return await f()}finally{const next=queue.shift();if(next)next();else deciding--}}
